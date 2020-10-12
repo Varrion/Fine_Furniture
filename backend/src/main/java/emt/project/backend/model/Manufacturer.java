@@ -1,5 +1,6 @@
 package emt.project.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,18 +23,18 @@ public class Manufacturer {
 
     String city;
 
-    String street;
+    String email;
 
-    Integer numberOfStreet;
+    String address;
 
-    Long phoneNumber;
+    String phoneNumber;
+
+    @OneToOne
+    User manufacturerAdmin;
 
     @Lob
     byte[] picture;
 
-    @ManyToMany
-    Set<Category> categories;
-
     @OneToMany(mappedBy = "manufacturer")
-    Set<Furniture> furnitures;
+    Set<Furniture> furniture;
 }

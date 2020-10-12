@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
@@ -6,6 +6,9 @@ import {AccountCircle} from "@material-ui/icons";
 import LockIcon from "@material-ui/icons/Lock";
 import {Button} from "@material-ui/core";
 import makeStyles from "@material-ui/core/styles/makeStyles";
+import {BasicAuthToken, LoginUser} from "./UserService";
+import {useHistory} from "react-router-dom"
+import {authContext} from "../config/authentication";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -37,6 +40,8 @@ const useStyles = makeStyles((theme) => ({
 
 function Login(props) {
     const classes = useStyles();
+    const history = useHistory();
+    const {setAuthData} = useContext(authContext);
 
     const [user, setUser] = useState({
         username: '',
@@ -44,11 +49,20 @@ function Login(props) {
     })
 
     const handleChange = name => event => {
-            setUser({...user, [name]: event.target.value});
+        setUser({...user, [name]: event.target.value});
     };
 
     const handleSubmit = event => {
         event.preventDefault();
+
+        LoginUser(user)
+            .then(res => {
+                setAuthData(BasicAuthToken(res.data.username, res.data.password))
+                history.push("/");
+            })
+            .catch(err => {
+                alert(err.message);
+            })
     };
 
 
@@ -72,7 +86,8 @@ function Login(props) {
                         <LockIcon/>
                     </Grid>
                     <Grid item>
-                        <TextField id="input-with-icon-grid" label="Password" onChange={handleChange("password")}
+                        <TextField id="input-with-icon-grid" label="Password" type={"password"}
+                                   onChange={handleChange("password")}
                                    style={{width: "568px"}}/>
                     </Grid>
                 </Grid>

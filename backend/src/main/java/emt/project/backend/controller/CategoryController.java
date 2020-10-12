@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/category")
+@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping(value = "api/category")
 public class CategoryController {
     private final CategoryService categoryService;
 

@@ -20,6 +20,9 @@ public class Category {
 
     String description;
 
+    @OneToMany(mappedBy = "category")
+    Set<Furniture> furniture;
+
     @ManyToMany
     Set<Manufacturer> manufacturers;
 }

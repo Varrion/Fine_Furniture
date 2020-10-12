@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+
 @Service
 public class CategoryServiceImpl implements CategoryService {
     final private CategoryRepository categoryRepository;
@@ -31,13 +32,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category editCategory(Category category){
+    public Category editCategory(Category category) {
 
-        Optional<Category> kategorija = getOneCategory(category.getId());
+        Optional<Category> optionalCategory = getOneCategory(category.getId());
+        if (optionalCategory.isPresent()) {
 
-        if(kategorija.isPresent()){
-
-            Category editedCategory = kategorija.get();
+            Category editedCategory = optionalCategory.get();
             editedCategory.setId(category.getId());
             editedCategory.setName(category.getName());
             editedCategory.setDescription(category.getDescription());

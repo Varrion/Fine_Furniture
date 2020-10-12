@@ -1,23 +1,36 @@
 package emt.project.backend.service.impl;
 
+import emt.project.backend.model.Category;
 import emt.project.backend.model.Furniture;
+import emt.project.backend.model.dto.FurnitureDto;
+import emt.project.backend.model.enums.FurnitureColor;
+import emt.project.backend.model.enums.FurnitureType;
 import emt.project.backend.repository.FurnitureRepository;
+import emt.project.backend.service.CategoryService;
 import emt.project.backend.service.FurnitureService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class FurnitureServiceImpl implements FurnitureService {
     private final FurnitureRepository furnitureRepository;
+    private final CategoryService categoryService;
 
-    public FurnitureServiceImpl(FurnitureRepository furnitureRepository) {
+    public FurnitureServiceImpl(FurnitureRepository furnitureRepository, CategoryService categoryService) {
         this.furnitureRepository = furnitureRepository;
+        this.categoryService = categoryService;
     }
 
     @Override
-    public List<Furniture> getAllFurnitures() {
+    public List<Furniture> getAllFurniture() {
         return furnitureRepository.findAll();
     }
 
@@ -37,27 +50,61 @@ public class FurnitureServiceImpl implements FurnitureService {
     }
 
     @Override
-    public Furniture addFurniture(Furniture furniture) {
+    public Furniture addFurniture(FurnitureDto furnitureDto, MultipartFile furniturePicture) throws IOException {
+        Furniture furniture = new Furniture();
+
+        if (furniturePicture != null) {
+            furniture.setPicture(furniturePicture.getBytes());
+        }
+
+        furniture.setName(furnitureDto.getName());
+        furniture.setDescription(furnitureDto.getDescription());
+        furniture.setPrice(furnitureDto.getPrice());
+
+        Optional<Category> optionalCategory = categoryService.getOneCategory(furnitureDto.getCategoryId());
+        furniture.setCategory(optionalCategory.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
+
+        furniture.setFurnitureType(FurnitureType.valueOf(furnitureDto.getFurnitureType()));
+
+        Set<FurnitureColor> colorSet = new HashSet<>();
+        for (String color : furnitureDto.getFurnitureColors()) {
+            colorSet.add(FurnitureColor.valueOf(color));
+        }
+        furniture.setColorSet(colorSet);
+
         return furnitureRepository.save(furniture);
     }
 
     @Override
-    public Furniture editFurniture(Furniture furniture) {
+    public Furniture editFurniture(Long id, FurnitureDto furnitureDto, MultipartFile furniturePicture) throws IOException {
 
-        Optional<Furniture> furniture1 = getOneFurniture(furniture.getId());
+        Optional<Furniture> optionalFurniture = getOneFurniture(id);
 
-        if (furniture1.isPresent()){
-            Furniture editedFurniture = furniture1.get();
-            editedFurniture.setId(furniture.getId());
-            editedFurniture.setName(furniture.getName());
-            editedFurniture.setPicture(furniture.getPicture());
-            editedFurniture.setPrice(furniture.getPrice());
-            editedFurniture.setDescription(furniture.getDescription());
-            editedFurniture.setCategory(furniture.getCategory());
+        if (optionalFurniture.isPresent()) {
+            Furniture editedFurniture = optionalFurniture.get();
 
+            if (furniturePicture != null) {
+                editedFurniture.setPicture(furniturePicture.getBytes());
+            }
+
+            editedFurniture.setName(furnitureDto.getName());
+            editedFurniture.setDescription(furnitureDto.getDescription());
+            editedFurniture.setPrice(furnitureDto.getPrice());
+
+            Optional<Category> optionalCategory = categoryService.getOneCategory(furnitureDto.getCategoryId());
+            editedFurniture.setCategory(optionalCategory.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
+
+            editedFurniture.setFurnitureType(FurnitureType.valueOf(furnitureDto.getFurnitureType()));
+
+            Set<FurnitureColor> colorSet = new HashSet<>();
+            for (String color : furnitureDto.getFurnitureColors()) {
+                colorSet.add(FurnitureColor.valueOf(color));
+            }
+            editedFurniture.setColorSet(colorSet);
             return furnitureRepository.save(editedFurniture);
         }
-        return null;
+
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     @Override

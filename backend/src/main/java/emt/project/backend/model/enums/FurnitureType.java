@@ -1,6 +1,6 @@
 package emt.project.backend.model.enums;
 
-public enum furnitureTypes {
+public enum FurnitureType {
     Sofas,
     Tables,
     Chairs,

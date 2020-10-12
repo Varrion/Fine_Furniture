@@ -1,14 +1,18 @@
-import React, {useState} from "react";
+import React, {useContext, useState} from "react";
 import {AccountCircle} from "@material-ui/icons";
 import LockIcon from '@material-ui/icons/Lock';
 import EmailIcon from '@material-ui/icons/Email';
 import Grid from "@material-ui/core/Grid";
+import PhoneIcon from '@material-ui/icons/Phone';
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import TextField from "@material-ui/core/TextField";
 import Paper from "@material-ui/core/Paper";
 import {Button, Hidden} from "@material-ui/core";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import {BasicAuthToken, RegisterUser} from "./UserService";
+import {useHistory} from "react-router-dom"
+import {authContext} from "../config/authentication";
 
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -36,27 +40,29 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-
 function Register(props) {
     const classes = useStyles();
+    const history = useHistory();
+    const { setAuthData } = useContext(authContext);
 
     const initialUser = {
         username: '',
         password: '',
         name: '',
         surname: '',
-        address: '',
-        city: '',
         email: '',
-        isSeller: false
+        phoneNumber: '',
+        city: '',
+        address: '',
+        isManufacturer: false,
+        picture: null
     }
 
     const [user, setUser] = useState(initialUser);
-
     const [userPhoto, setUserPhoto] = useState(null);
 
     const handleChange = name => event => {
-        if (name !== "isSeller") {
+        if (name !== "isManufacturer") {
             setUser({...user, [name]: event.target.value});
         } else {
             setUser({...user, [name]: event.target.checked});
@@ -72,10 +78,23 @@ function Register(props) {
         event.preventDefault();
 
         const formData = new FormData();
-        formData.append("customerDto", new Blob([JSON.stringify({...user})], {
+        formData.append("userDto", new Blob([JSON.stringify({...user})], {
             type: "application/json"
         }));
-        formData.append("customerPicture", userPhoto);
+        formData.append("userPicture", userPhoto);
+
+        RegisterUser(formData)
+            .then(res => {
+                setAuthData(BasicAuthToken(res.data.username, res.data.password))
+                if (res.data.isManufacturer) {
+                    history.push("/admin-panel", {manufacturerAdmin: res.data.id})
+                } else {
+                    history.push(`user/${res.data.username}`)
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            })
     };
 
     return (
@@ -109,7 +128,8 @@ function Register(props) {
                         <LockIcon/>
                     </Grid>
                     <Grid item>
-                        <TextField id="input-with-icon-grid" label="Password" onChange={handleChange("password")}
+                        <TextField id="input-with-icon-grid" label="Password" type={"password"}
+                                   onChange={handleChange("password")}
                                    style={{width: "568px"}}/>
                     </Grid>
                 </Grid>
@@ -119,7 +139,18 @@ function Register(props) {
                         <EmailIcon/>
                     </Grid>
                     <Grid item>
-                        <TextField id="input-with-icon-grid" label="Email" onChange={handleChange("email")}
+                        <TextField id="input-with-icon-grid" label="Email" type={"email"}
+                                   onChange={handleChange("email")}
+                                   style={{width: "568px"}}/>
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={1} alignItems="flex-end" className={classes.textField}>
+                    <Grid item>
+                        <PhoneIcon/>
+                    </Grid>
+                    <Grid item>
+                        <TextField id="input-with-icon-grid" label="Phone" onChange={handleChange("phoneNumber")}
                                    style={{width: "568px"}}/>
                     </Grid>
                 </Grid>
@@ -135,13 +166,20 @@ function Register(props) {
                     </Grid>
                 </Grid>
 
+                <Grid container spacing={1} alignItems="flex-end" className={classes.textField}>
+                    <Grid item>
+                        <TextField id="input-with-icon-grid" placeholder={"Picture"} type={"file"} onChange={handleDrop}
+                                   style={{width: "601px"}}/>
+                    </Grid>
+                </Grid>
+
                 <Grid container spacing={1} justify={"flex-start"}>
-                    <Grid item md={3} implementation="css" smDown component={Hidden} />
+                    <Grid item md={3} implementation="css" smDown component={Hidden}/>
                     <FormControlLabel
                         control={
                             <Switch
-                                checked={user.isSeller}
-                                onChange={handleChange('isSeller')}
+                                checked={user.isManufacturer}
+                                onChange={handleChange('isManufacturer')}
                                 name="checkedB"
                                 color="primary"
                             />
