@@ -37,7 +37,7 @@ public class User implements UserDetails {
 
     Boolean isManufacturer;
 
-    @OneToOne(mappedBy = "manufacturerAdmin")
+    @OneToOne(mappedBy = "manufacturerAdmin", orphanRemoval = true)
     @JsonIgnore
     Manufacturer manufacturer;
 

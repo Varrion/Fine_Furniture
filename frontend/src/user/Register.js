@@ -85,7 +85,7 @@ function Register(props) {
 
         RegisterUser(formData)
             .then(res => {
-                setAuthData(BasicAuthToken(res.data.username, res.data.password))
+                setAuthData(BasicAuthToken(res.data.username, res.data.password), res.data.isManufacturer, res.data.id)
                 if (res.data.isManufacturer) {
                     history.push("/admin-panel", {manufacturerAdmin: res.data.id})
                 } else {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import TextField from "@material-ui/core/TextField";
@@ -14,6 +14,8 @@ import {
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {useHistory, useLocation, useParams} from "react-router-dom"
 import EmailIcon from "@material-ui/icons/Email";
+import {authContext} from "../config/authentication";
+import {EncodeUsernameFromStorage, GetUserDetails} from "../user/UserService";
 
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -45,6 +47,7 @@ function AddUpdateManufacturerDetails(props) {
     const classes = useStyles();
     const location = useLocation();
     const history = useHistory();
+    const {auth} = useContext(authContext)
     const {manufacturerAdmin} = useParams();
     const [shopId, setShopId] = useState(null);
     const initialManufacturer = {
@@ -54,14 +57,27 @@ function AddUpdateManufacturerDetails(props) {
         city: '',
         address: '',
         phoneNumber: '',
-        manufacturerAdminId: location.state.manufacturerAdmin ?? manufacturerAdmin
+        manufacturerAdminId: location.state?.manufacturerAdmin ?? manufacturerAdmin
     }
 
     const [manufacturer, setManufacturer] = useState(initialManufacturer);
     const [manufacturerPhoto, setManufacturerPhoto] = useState(null);
 
     useEffect(() => {
-        GetManufacturerByAdmin(location.state.manufacturerAdmin)
+
+        if (auth && !auth.loading && auth.data) {
+            GetUserDetails(EncodeUsernameFromStorage(auth.data))
+                .then(res => {
+                    if (!res.data.isManufacturer) {
+                        history.push({
+                            pathname: `/user/${res.data.username}`
+                        })
+                    }
+                })
+                .catch(err => console.log(err))
+        }
+
+        GetManufacturerByAdmin(location.state?.manufacturerAdmin)
             .then(res => {
                 setManufacturer({
                     name: res.data.name,
@@ -81,7 +97,7 @@ function AddUpdateManufacturerDetails(props) {
                     window.location.reload();
                 }
             })
-    }, [shopId])
+    }, [shopId, auth])
 
     const handleChange = name => event => {
         setManufacturer({...manufacturer, [name]: event.target.value});
@@ -105,6 +121,7 @@ function AddUpdateManufacturerDetails(props) {
             AddManufacturer(formData)
                 .then(res => {
                     history.push(`/shop/${res.data.id}`)
+                    window.location.reload();
                 })
                 .catch(err => {
                     console.log(err);
@@ -113,6 +130,7 @@ function AddUpdateManufacturerDetails(props) {
             UpdateManufacturer(formData, shopId)
                 .then(res => {
                     history.push(`/shop/${res.data.id}`)
+                    window.location.reload();
                 })
                 .catch(err => {
                     console.log(err);
@@ -125,6 +143,7 @@ function AddUpdateManufacturerDetails(props) {
         DeleteManufacturerById(shopId)
             .then(() => {
                 history.push("/");
+                window.location.reload();
             })
             .catch(err => {
                 console.log(err);

@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import {useHistory, useParams} from "react-router-dom";
-import {DeleteUser, GetUserDetails} from "./UserService";
+import {DeleteUser, EncodeUsernameFromStorage, GetUserDetails} from "./UserService";
 import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import ProfilePicture from "../assets/images/profile.png"
@@ -54,20 +54,28 @@ function Profile(props) {
     const [user, setUser] = useState(null);
     const [profileUpdated, setProfileUpdated] = useState(false);
     const [openProfileModal, setOpenProfileModal] = useState(false);
-    const {setAuthData} = useContext(authContext);
+    const [loggedUser, setLoggedUser] = useState(null);
+    const {auth, setAuthData} = useContext(authContext);
     let {username} = useParams();
 
     useEffect(() => {
-
         if (profileUpdated) {
             window.location.reload();
         }
 
+        if (auth && !auth.loading && auth.data) {
+            GetUserDetails(EncodeUsernameFromStorage(auth.data))
+                .then(res => {
+                    setLoggedUser(res.data);
+                })
+                .catch(err => console.log(err))
+        }
         GetUserDetails(username)
             .then(res => {
                 setUser(res.data);
             })
-    }, [profileUpdated])
+
+    }, [auth, profileUpdated])
 
     const handleOpenProfileModal = () => {
         setOpenProfileModal(true);
@@ -85,7 +93,7 @@ function Profile(props) {
             .then(() => {
                 setAuthData(null);
                 history.push("/");
-                history.reload();
+                window.location.reload();
             })
     }
 
@@ -118,14 +126,15 @@ function Profile(props) {
                         <Typography variant="subtitle1" gutterBottom><LocationCityIcon/> {user.city}</Typography>
                         <Typography variant="subtitle1" gutterBottom><PhoneIcon/> {user.phoneNumber}</Typography>
 
-                        <div className={classes.centeredContent}>
+                        {loggedUser && loggedUser.username === user.username
+                        && <div className={classes.centeredContent}>
                             <Button variant={"outlined"} color={"primary"} className={classes.marginRight}
                                     onClick={handleOpenProfileModal}>
                                 Edit Profile
                             </Button>
                             <Button variant={"outlined"} color={"secondary"} onClick={onDeleteProfile(user.id)}>Delete
                                 Profile</Button>
-                        </div>
+                        </div>}
                     </Grid>
                 </Grid>
                 {openProfileModal
@@ -136,7 +145,7 @@ function Profile(props) {
     } else
         return (
             <div>
-                No details available
+                There is no such user
             </div>
         )
 }

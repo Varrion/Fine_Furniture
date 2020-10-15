@@ -35,6 +35,29 @@ public class Manufacturer {
     @Lob
     byte[] picture;
 
-    @OneToMany(mappedBy = "manufacturer")
+    @OneToMany(mappedBy = "manufacturer", orphanRemoval = true)
+    @JsonIgnore
     Set<Furniture> furniture;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+        if (!(o instanceof Furniture)) {
+            return false;
+        }
+
+        Manufacturer manufacturer = (Manufacturer) o;
+
+        return manufacturer.name.equals(name) &&
+                manufacturer.id.equals(id);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + name.hashCode();
+        result = 31 * result + description.hashCode();
+        return result;
+    }
 }

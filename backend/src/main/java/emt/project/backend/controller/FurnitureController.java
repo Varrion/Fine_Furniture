@@ -2,7 +2,11 @@ package emt.project.backend.controller;
 
 import emt.project.backend.model.Furniture;
 import emt.project.backend.model.dto.FurnitureDto;
+import emt.project.backend.model.dto.PaymentDto;
 import emt.project.backend.service.FurnitureService;
+import emt.project.backend.service.PaymentService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,9 +20,11 @@ import java.util.Optional;
 @RequestMapping("/api/furniture")
 public class FurnitureController {
     private final FurnitureService furnitureService;
+    private final PaymentService paymentService;
 
-    public FurnitureController(FurnitureService furnitureService) {
+    public FurnitureController(FurnitureService furnitureService, PaymentService paymentService) {
         this.furnitureService = furnitureService;
+        this.paymentService = paymentService;
     }
 
     @GetMapping
@@ -32,12 +38,12 @@ public class FurnitureController {
     }
 
     @GetMapping("/category/{categoryId}")
-    List<Furniture> getAllByCategory(@PathVariable Long categoryId) {
+    List<Furniture> getAllFurnitureByCategory(@PathVariable Long categoryId) {
         return furnitureService.findAllByCategoryId(categoryId);
     }
 
-    @GetMapping("/{manufacturerId}")
-    List<Furniture> getAllByManufacturerId(@PathVariable Long manufacturerId) {
+    @GetMapping("/manufacturer/{manufacturerId}")
+    List<Furniture> getAllFurnitureByManufacturer(@PathVariable Long manufacturerId) {
         return furnitureService.findAllByManufacturerId(manufacturerId);
     }
 
@@ -56,5 +62,14 @@ public class FurnitureController {
     @DeleteMapping("/{id}")
     void deleteFurniture(@PathVariable Long id) {
         furnitureService.deleteFurniture(id);
+    }
+
+    @PostMapping("/buy")
+    public ResponseEntity<String> buyFurniture(@RequestBody PaymentDto request) {
+        String chargeId = paymentService.createCharge(request);
+
+        return chargeId != null
+                ? new ResponseEntity<String>(chargeId, HttpStatus.OK)
+                : new ResponseEntity<String>("Please check your credit card informations", HttpStatus.BAD_REQUEST);
     }
 }

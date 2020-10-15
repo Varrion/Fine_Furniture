@@ -20,7 +20,7 @@ function App() {
                 <Header/>
                 <Container fixed className="App" style={{marginTop: "30px"}}>
                     <Switch>
-                        <Route path="/furniture/:id" component={FurnitureDetails} exact/>
+                        <Route path="/furniture/:furnitureId" component={FurnitureDetails} exact/>
                         <Route path="/login" component={Login} exact/>
                         <Route path="/register" component={Register} exact/>
                         <Route path="/category/:categoryId" component={CategoryDetails} exact/>

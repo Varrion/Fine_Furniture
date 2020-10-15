@@ -25,7 +25,6 @@ const useStyles = makeStyles((theme) => ({
     }
 }));
 
-
 function Header(props) {
     const history = useHistory();
     const classes = useStyles();
@@ -55,7 +54,9 @@ function Header(props) {
                             setShopId(result.data.id)
                         })
                         .catch(err => {
-                            window.location.reload();
+                            if (err.response.status === 401) {
+                                window.location.reload();
+                            }
                         })
                 })
                 .catch(err => console.log(err))
@@ -90,18 +91,26 @@ function Header(props) {
                                       open={open}
                                       onClose={handleClose}
                                       TransitionComponent={Fade}>
-                                    <MenuItem component={Link} to={`/user/${loggedUser.username}`}
+                                    <MenuItem component={Link} to={{
+                                        pathname: `/user/${loggedUser.username}`
+                                    }}
                                               onClick={handleClose}> Profile details </MenuItem>
                                     {
                                         loggedUser.isManufacturer &&
-                                        <MenuItem component={Link} to={`/shop/${shopId}`}
-                                                  onClick={handleClose}> My Shop </MenuItem>
+                                        <div>
+                                            <MenuItem component={Link}
+                                                      to={{
+                                                          pathname: shopId ? `/shop/${shopId}` : "/admin-panel",
+                                                          state: {manufacturerAdmin: loggedUser.id}
+                                                      }}
+                                                      onClick={handleClose}> My Shop </MenuItem>
+                                            <MenuItem component={Link} to={{
+                                                pathname: "/admin-panel",
+                                                state: {manufacturerAdmin: loggedUser.id}
+                                            }}
+                                                      onClick={handleClose}> Admin panel </MenuItem>
+                                        </div>
                                     }
-                                    <MenuItem component={Link} to={{
-                                        pathname: "/admin-panel",
-                                        state: {manufacturerAdmin: loggedUser.id}
-                                    }}
-                                              onClick={handleClose}> Shop panel </MenuItem>
                                     <MenuItem
                                         onClick={logoutUser}> Logout </MenuItem>
                                 </Menu>

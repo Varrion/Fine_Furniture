@@ -6,16 +6,14 @@ function CarouselItem(props) {
         <Paper style={{
             backgroundImage: "url(" + props.item.image + ")",
             width: "1200px",
-            height: "550px",
+            height: "600px",
             backgroundRepeat: "no-repeat",
             display: "flex",
-            alignItems:"center",
-            justifyContent:"flex-end",
-            flexDirection:"column",
-            color:"white"
+            alignItems: "center",
+            justifyContent: "flex-end",
+            flexDirection: "column",
+            color: "white"
         }}>
-            <h2>{props.item.name}</h2>
-            <p>{props.item.description}</p>
         </Paper>
     )
 }

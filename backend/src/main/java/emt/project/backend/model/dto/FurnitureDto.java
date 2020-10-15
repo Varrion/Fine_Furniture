@@ -19,9 +19,9 @@ public class FurnitureDto {
     @NotNull(message = "Price must be set")
     Long price;
 
-    @NotBlank(message = "Type must be provided")
-    String furnitureType;
-
     @NotNull(message = "At least one color must be given")
     String[] furnitureColors;
+
+    @NotNull(message = "Manufacturer must be provided")
+    Long manufacturerId;
 }

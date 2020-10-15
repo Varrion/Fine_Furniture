@@ -2,12 +2,13 @@ package emt.project.backend.service.impl;
 
 import emt.project.backend.model.Category;
 import emt.project.backend.model.Furniture;
+import emt.project.backend.model.Manufacturer;
 import emt.project.backend.model.dto.FurnitureDto;
 import emt.project.backend.model.enums.FurnitureColor;
-import emt.project.backend.model.enums.FurnitureType;
 import emt.project.backend.repository.FurnitureRepository;
 import emt.project.backend.service.CategoryService;
 import emt.project.backend.service.FurnitureService;
+import emt.project.backend.service.ManufacturerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,10 +24,12 @@ import java.util.Set;
 public class FurnitureServiceImpl implements FurnitureService {
     private final FurnitureRepository furnitureRepository;
     private final CategoryService categoryService;
+    private final ManufacturerService manufacturerService;
 
-    public FurnitureServiceImpl(FurnitureRepository furnitureRepository, CategoryService categoryService) {
+    public FurnitureServiceImpl(FurnitureRepository furnitureRepository, CategoryService categoryService, ManufacturerService manufacturerService) {
         this.furnitureRepository = furnitureRepository;
         this.categoryService = categoryService;
+        this.manufacturerService = manufacturerService;
     }
 
     @Override
@@ -64,7 +67,8 @@ public class FurnitureServiceImpl implements FurnitureService {
         Optional<Category> optionalCategory = categoryService.getOneCategory(furnitureDto.getCategoryId());
         furniture.setCategory(optionalCategory.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
 
-        furniture.setFurnitureType(FurnitureType.valueOf(furnitureDto.getFurnitureType()));
+        Optional<Manufacturer> optionalManufacturer = manufacturerService.getOneManufacturers(furnitureDto.getManufacturerId());
+        furniture.setManufacturer(optionalManufacturer.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
 
         Set<FurnitureColor> colorSet = new HashSet<>();
         for (String color : furnitureDto.getFurnitureColors()) {
@@ -93,8 +97,6 @@ public class FurnitureServiceImpl implements FurnitureService {
 
             Optional<Category> optionalCategory = categoryService.getOneCategory(furnitureDto.getCategoryId());
             editedFurniture.setCategory(optionalCategory.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
-
-            editedFurniture.setFurnitureType(FurnitureType.valueOf(furnitureDto.getFurnitureType()));
 
             Set<FurnitureColor> colorSet = new HashSet<>();
             for (String color : furnitureDto.getFurnitureColors()) {

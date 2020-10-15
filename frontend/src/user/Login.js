@@ -57,7 +57,7 @@ function Login(props) {
 
         LoginUser(user)
             .then(res => {
-                setAuthData(BasicAuthToken(res.data.username, res.data.password))
+                setAuthData(BasicAuthToken(res.data.username, res.data.password), res.data.isManufacturer, res.data.id)
                 history.push("/");
             })
             .catch(err => {

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {Link, useParams} from "react-router-dom";
 import {GetManufacturerDetails} from "./ManufacturerService";
 import Paper from "@material-ui/core/Paper";
@@ -10,6 +10,11 @@ import LocationCityIcon from "@material-ui/icons/LocationCity";
 import PhoneIcon from "@material-ui/icons/Phone";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import {Button} from "@material-ui/core";
+import {GetFurnitureByManufacturer} from "../furniture/FurnitureService";
+import AddUpdateFurniture from "../furniture/AddUpdateFurniture";
+import CardItem from "../shared/CardItem";
+import {authContext} from "../config/authentication";
+import {EncodeUsernameFromStorage, GetUserDetails} from "../user/UserService";
 
 const useStyles = makeStyles((theme) => ({
     verticalLine: {
@@ -44,23 +49,61 @@ const useStyles = makeStyles((theme) => ({
         marginTop: "20px"
     },
 
+    marginDown: {
+        marginDown: "10px"
+    },
+
     flexDisplay: {
         display: "flex"
     },
-}));
 
+    grid: {
+        padding: "10px"
+    }
+}));
 
 function ManufacturerDetails(props) {
     const classes = useStyles();
     const {shopId} = useParams();
     const [manufacturer, setManufacturerDetails] = useState(null);
+    const [shopFurniture, setShopFurniture] = useState(null);
+    const [furnitureChanged, setFurnitureChanged] = useState(false);
+    const [openFurnitureModal, setOpenFurnitureModal] = useState(false);
+    const {auth} = useContext(authContext);
+    const [loggedUser, setLoggedUser] = useState(null);
 
     useEffect(() => {
+
+        if (auth && !auth.loading && auth.data) {
+            GetUserDetails(EncodeUsernameFromStorage(auth.data))
+                .then(res => {
+                    setLoggedUser(res.data);
+                })
+                .catch(err => console.log(err))
+        }
+
         GetManufacturerDetails(shopId)
             .then(res => {
                 setManufacturerDetails(res.data);
+
+                GetFurnitureByManufacturer(res.data.id)
+                    .then(res => {
+                        setShopFurniture(res.data);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
             })
-    }, [])
+    }, [auth, furnitureChanged])
+
+    const handleOpenFurnitureModal = () => {
+        setOpenFurnitureModal(true);
+    };
+
+    const handleCloseFurnitureModal = () => {
+        setOpenFurnitureModal(false);
+        setFurnitureChanged(false);
+    };
 
     return (
         <>
@@ -95,19 +138,46 @@ function ManufacturerDetails(props) {
                         <Typography variant="subtitle1" gutterBottom><PhoneIcon/> {manufacturer.phoneNumber}
                         </Typography>
 
+                        {loggedUser && loggedUser.username === manufacturer.manufacturerAdmin.username &&
                         <div className={classes.rightContent}>
                             <Button component={Link} to={{
                                 pathname: "/admin-panel",
                                 state: {manufacturerAdmin: manufacturer.manufacturerAdmin.id}
                             }}>
                                 Go to admin panel </Button>
+                            <Button onClick={handleOpenFurnitureModal}>
+                                Add Furniture
+                            </Button>
                         </div>
+                        }
                     </Grid>
                 </Grid>
                 <hr/>
-                <Grid container>
-                    <Typography variant="h4">Test</Typography>
+                <Grid container spacing={3} direction={"column"} alignItems={"flex-start"}
+                      className={classes.marginDown}>
+                    <Grid item xs={12}>
+                        <Typography variant={"h4"} gutterBottom>
+                            {shopFurniture && shopFurniture.length > 0 ? "Furniture from this shop" : "There is no furniture for this shop yet"}
+                        </Typography>
+                        <Grid container>
+                            {shopFurniture && shopFurniture.length > 0 && shopFurniture.map(furniture =>
+                                <Grid item xs={4} key={furniture.id}>
+                                    <CardItem
+                                        isShop={false}
+                                        id={furniture.id}
+                                        title={furniture.name}
+                                        description={furniture.description}
+                                        category={furniture.category.name}
+                                        price={furniture.price}
+                                        image={furniture.picture}/>
+                                </Grid>)}
+                        </Grid>
+                    </Grid>
                 </Grid>
+                {openFurnitureModal &&
+                <AddUpdateFurniture furnitureChanged={setFurnitureChanged} manufacturerId={manufacturer.id}
+                                    open={openFurnitureModal}
+                                    handleClose={handleCloseFurnitureModal}/>}
             </Paper>
             }
         </>
