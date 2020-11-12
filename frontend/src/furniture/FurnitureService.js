@@ -15,8 +15,8 @@ async function GetAllCategories() {
     return axios.get(categoryRoute)
 }
 
-async function UpdateCategory(categoryForm) {
-    return axios.put(categoryRoute, categoryForm);
+async function UpdateCategory(categoryId, categoryForm) {
+    return axios.put(`${categoryRoute}/${categoryId}`, categoryForm);
 }
 
 async function GetCategoryDetails(categoryId) {

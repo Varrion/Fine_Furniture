@@ -7,7 +7,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
 import makeStyles from "@material-ui/core/styles/makeStyles";
-import {AddCategory} from "../FurnitureService";
+import {AddCategory, UpdateCategory} from "../FurnitureService";
 
 const useStyles = makeStyles((theme) => ({
     margin: {
@@ -23,8 +23,8 @@ function AddUpdateCategory(props) {
     const classes = useStyles();
 
     const initialCategory = {
-        name: '',
-        description: ''
+        name: props.category ? props.category.name : '',
+        description: props.category ? props.category.description : ''
     }
 
     const [category, setCategory] = useState(initialCategory)
@@ -35,15 +35,19 @@ function AddUpdateCategory(props) {
 
     const handleSubmit = event => {
         event.preventDefault();
-        AddCategory(category)
-            .then(response => {
-                props.isCategoryAdded(true);
-                props.handleClose();
-            })
-            .catch(err => {
-                console.log(err)
-                props.isCategoryAdded(false);
-            })
+        if (!props.isEdit) {
+            AddCategory(category)
+                .then(response => {
+                    props.isCategoryAdded(true);
+                    props.handleClose();
+                })
+                .catch(err => {
+                    console.log(err)
+                    props.isCategoryAdded(false);
+                })
+        } else {
+            UpdateCategory(props.category.id, category).then(() => props.handleClose())
+        }
     };
 
     useEffect(() => {
@@ -81,7 +85,7 @@ function AddUpdateCategory(props) {
                         Cancel
                     </Button>
                     <Button color="primary" type="submit">
-                        Subscribe
+                        {props.category ? "Edit" : "Add"}
                     </Button>
                 </DialogActions>
             </form>

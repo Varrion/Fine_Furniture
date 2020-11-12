@@ -32,13 +32,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category editCategory(Category category) {
+    public Category editCategory(Long id, Category category) {
 
-        Optional<Category> optionalCategory = getOneCategory(category.getId());
+        Optional<Category> optionalCategory = getOneCategory(id);
         if (optionalCategory.isPresent()) {
 
             Category editedCategory = optionalCategory.get();
-            editedCategory.setId(category.getId());
             editedCategory.setName(category.getName());
             editedCategory.setDescription(category.getDescription());
 
